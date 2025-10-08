@@ -687,7 +687,6 @@ async def chat(
         q = unquote(q)
         train_of_thought = []
         nonlocal conversation_id
-        nonlocal raw_query_files
 
         tracer: dict = {
             "mid": turn_id,
