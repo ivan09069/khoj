@@ -240,35 +240,35 @@ async def execute_information_collection(
             current_iteration = MAX_ITERATIONS
 
         elif this_iteration.tool == ConversationCommand.Notes:
-            this_iteration.context = []
-            document_results = []
-            previous_inferred_queries = {
-                c["query"] for iteration in previous_iterations if iteration.context for c in iteration.context
-            }
-            async for result in extract_references_and_questions(
-                request,
-                construct_tool_chat_history(previous_iterations, ConversationCommand.Notes),
-                this_iteration.query,
-                7,
-                None,
-                conversation_id,
-                [ConversationCommand.Default],
-                location,
-                send_status_func,
-                query_images,
-                previous_inferred_queries=previous_inferred_queries,
-                agent=agent,
-                tracer=tracer,
-                query_files=query_files,
-            ):
-                if isinstance(result, dict) and ChatEvent.STATUS in result:
-                    yield result[ChatEvent.STATUS]
-                elif isinstance(result, tuple):
-                    document_results = result[0]
-                    this_iteration.context += document_results
+            try:
+                this_iteration.context = []
+                document_results = []
+                previous_inferred_queries = {
+                    c["query"] for iteration in previous_iterations if iteration.context for c in iteration.context
+                }
+                async for result in extract_references_and_questions(
+                    request,
+                    construct_tool_chat_history(previous_iterations, ConversationCommand.Notes),
+                    this_iteration.query,
+                    7,
+                    None,
+                    conversation_id,
+                    [ConversationCommand.Default],
+                    location,
+                    send_status_func,
+                    query_images,
+                    previous_inferred_queries=previous_inferred_queries,
+                    agent=agent,
+                    tracer=tracer,
+                    query_files=query_files,
+                ):
+                    if isinstance(result, dict) and ChatEvent.STATUS in result:
+                        yield result[ChatEvent.STATUS]
+                    elif isinstance(result, tuple):
+                        document_results = result[0]
+                        this_iteration.context += document_results
 
-            if not is_none_or_empty(document_results):
-                try:
+                if not is_none_or_empty(document_results):
                     distinct_files = {d["file"] for d in document_results}
                     distinct_headings = set([d["compiled"].split("\n")[0] for d in document_results if "compiled" in d])
                     # Strip only leading # from headings
@@ -277,9 +277,9 @@ async def execute_information_collection(
                         f"**Found {len(distinct_headings)} Notes Across {len(distinct_files)} Files**: {headings_str}"
                     ):
                         yield result
-                except Exception as e:
-                    this_iteration.warning = f"Error extracting document references: {e}"
-                    logger.error(this_iteration.warning, exc_info=True)
+            except Exception as e:
+                this_iteration.warning = f"Error extracting notes references: {e}"
+                logger.error(this_iteration.warning, exc_info=True)
 
         elif this_iteration.tool == ConversationCommand.Online:
             previous_subqueries = {
@@ -367,9 +367,9 @@ async def execute_information_collection(
                         this_iteration.codeContext = code_results
                 async for result in send_status_func(f"**Ran code snippets**: {len(this_iteration.codeContext)}"):
                     yield result
-            except ValueError as e:
+            except Exception as e:
                 this_iteration.warning = f"Error running code: {e}"
-                logger.warning(this_iteration.warning, exc_info=True)
+                logger.error(this_iteration.warning, exc_info=True)
 
         elif this_iteration.tool == ConversationCommand.Summarize:
             try:
