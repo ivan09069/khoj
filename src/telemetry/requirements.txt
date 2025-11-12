@@ -2,5 +2,4 @@ uvicorn
 fastapi
 posthog
 python-dotenv
-urllib3>=2.5.0 # not directly required, pinned by Snyk to avoid a vulnerability
-starlette>=0.47.2 # not directly required, pinned by Snyk to avoid a vulnerability
+requests>=2.32.4 # not directly required, pinned by Snyk to avoid a vulnerability
