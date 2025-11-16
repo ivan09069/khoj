@@ -714,7 +714,7 @@ async def chat(
                 query_files[file.name] = file.content
 
         async def send_event(event_type: ChatEvent, data: str | dict):
-            nonlocal connection_alive, ttft, train_of_thought
+            nonlocal connection_alive, ttft
             if not connection_alive or await request.is_disconnected():
                 connection_alive = False
                 logger.warning(f"User {user} disconnected from {common.client} client")
